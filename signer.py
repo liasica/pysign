@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 from typing import Tuple, List, Any, TypeVar, Callable, Type, cast
@@ -185,23 +186,21 @@ def sign_double():
             outf.close()
 
 
-VERSION = '0.0.1'
+VERSION = '1.0.0'
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", help="签名配置")
+parser.add_argument("--version", action='version', version=('%(prog)s {}'.format(VERSION)))
+args = parser.parse_args()
 
 if __name__ == '__main__':
     """
     调用签名， 使用示例:
-    python3 signer.py "{\"in_file\":\"test/document.pdf\",\"out_file\":\"test/document-signed.pdf\",\"signatures\":[{\"field\":\"entSign\",\"image\":\"test/seal.png\",\"key\":\"test/key1.pem\",\"cert\":\"test/cert1.pem\",\"rect\":[70,320,206,456]},{\"field\":\"riderSign\",\"image\":\"test/signature.png\",\"key\":\"test/key2.pem\",\"cert\":\"test/cert2.pem\",\"rect\":[242,343,317,419]}]}"
+    python3 signer.py --config test/config.json
     """
-    args = sys.argv[1:]
-    if len(args) == 1:
-        if args[0] == 'version':
-            print(VERSION)
-            sys.exit(0)
-        cfg = signature_config_from_dict(json.loads(args[0]))
+    with open(args.config, 'r') as f:
+        cfg = signature_config_from_dict(json.loads(f.read()))
         if cfg is None or len(cfg.signatures) != 2:
-            print('json配置读取失败')
+            print('签名配置读取失败')
             sys.exit(1)
         sign_double()
-    else:
-        print('配置获取失败')
-        sys.exit(1)
